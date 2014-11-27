@@ -1,3 +1,4 @@
+{%set pagination = table.pagination%}
 {%if pagination%}
 <ul class="pagination">
 {%if pagination.startPage > 1%}
@@ -39,15 +40,15 @@
 <tbody>
 
 {%if table.count > 0%}
-	{%for record in table.records%}
-	<tr>
-	{%for col in table.columns%}
-	<td>{{record[col] | safe}}</td>
-	{%endfor%}
-	</tr>
-	{%endfor%}
+  {%for record in table.records%}
+  <tr>
+  {%for col in table.columns%}
+  <td>{{record[col] | safe}}</td>
+  {%endfor%}
+  </tr>
+  {%endfor%}
 {%else%}
-	<tr><td colspan="{{table.columns.length}}">{{table.noRecordsFoundLabel}}</td></tr>
+  <tr><td colspan="{{table.columns.length}}">{{table.noRecordsFoundLabel}}</td></tr>
 {%endif%}
 </tbody>
 </table>

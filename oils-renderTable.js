@@ -1,15 +1,20 @@
 module.exports = function oilsRenderTable(pluginConf, web, next) {
+	web.renderTable = renderTable;
+	web.utils.getTableFromModel = getTableFromModel;
+
+
 	pluginConf = web.utils.extend(pluginConf, require('./conf.js'));
 	var async = require('async');
-	web.renderTable = function(ModelObj, req, opts, callback) {
+
+	function getTableFromModel(ModelObj, opts, callback) {
 		var tableObj = new Object();
+		tableObj.tableId = opts.tableId;
 		tableObj.rowsPerPage = opts.rowsPerPage;
 		if (!tableObj.rowsPerPage) {
 			tableObj.rowsPerPage = pluginConf.defaultRowsPerPage;
 		}
 
-		tableObj.tableId = opts.tableId || getPrefix(ModelObj);
-		var pageNo = req.query[tableObj.tableId + '_p'] || 1;
+		var pageNo = opts.pageNo || 1;
 		var sort = opts.sort;
 
 
@@ -56,13 +61,23 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 							}
 
 						}
-			            web.templateEngine.render(pluginConf.pluginPath + '/templates/table.html', {table: tableObj, pagination: pagination}, function(err, resultStr) {
-			            	callback(err, resultStr);
-			            })
+
+						tableObj.pagination = pagination;
+						callback(null, tableObj);
 					})
 		        })
 		    })
+	}
 
+	function renderTable(req, ModelObj, opts, callback) {
+		opts.tableId = opts.tableId || getPrefix(ModelObj);
+		opts.pageNo = req.query[opts.tableId + '_p'] || 1;
+
+		web.utils.getTableFromModel(ModelObj, opts, function(err, tableObj) {
+			web.templateEngine.render(pluginConf.pluginPath + '/templates/table.html', {table: tableObj}, function(err, resultStr) {
+			            	callback(err, resultStr);
+			            })
+		})
 	}
 
 
