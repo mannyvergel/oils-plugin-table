@@ -1,0 +1,53 @@
+{%if pagination%}
+<ul class="pagination">
+{%if pagination.startPage > 1%}
+<li><a href="?{{table.tableId}}_p=1">First</a></li>
+<li class="unavailable"><a href="">&hellip;</a></li>
+{%endif%}
+
+{%for page in pagination.pages%}
+<li {%if pagination.pageNo == page%}class="current"{%endif%}><a href="?{{table.tableId}}_p={{page}}">{{page}}</a></li>
+{%endfor%}
+
+{%if pagination.endPage < pagination.totalPage%}
+<li class="unavailable"><a href="">&hellip;</a></li>
+<li><a href="?{{table.tableId}}_p={{pagination.totalPage}}">Last</a></li>
+{%endif%}
+<!--
+  <li class="arrow unavailable"><a href="">&laquo;</a></li>
+  <li class="current"><a href="">1</a></li>
+  <li><a href="">2</a></li>
+  <li><a href="">3</a></li>
+  <li><a href="">4</a></li>
+  <li class="unavailable"><a href="">&hellip;</a></li>
+  <li><a href="">12</a></li>
+  <li><a href="">13</a></li>
+  <li class="arrow"><a href="">&raquo;</a></li>
+
+  -->
+</ul>
+{%endif%}
+
+<table class="table">
+<thead>
+<tr>
+{%for fieldLabel in table.labels%}
+<td>{{fieldLabel}}</td>
+{%endfor%}
+</tr>
+</thead>
+<tbody>
+
+{%if table.count > 0%}
+	{%for record in table.records%}
+	<tr>
+	{%for col in table.columns%}
+	<td>{{record[col] | safe}}</td>
+	{%endfor%}
+	</tr>
+	{%endfor%}
+{%else%}
+	<tr><td colspan="{{table.columns.length}}">{{table.noRecordsFoundLabel}}</td></tr>
+{%endif%}
+</tbody>
+</table>

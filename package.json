@@ -1,0 +1,37 @@
+{
+  "name": "oils-plugin-table",
+  "version": "1.0.0",
+  "description": "Table with pagination plugin for Oils JS",
+  "keywords": [
+  	"table",
+    "plugin",
+    "oils",
+    "pagination",
+    "pages",
+    "paginate"
+  ],
+  "author": {
+    "name": "Manny Vergel",
+    "email": "manny@mvergel.com",
+    "url": "http://www.mvergel.com/"
+  },
+  "homepage": "http://www.github.com/mannyvergel/wateroo-plugin-blog",
+  "repository": {
+    "type": "git",
+    "url": "https://www.github.com/mannyvergel/wateroo-plugin-blog.git"
+  },
+
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+
+  "dependencies": {
+    "async": "0.2.x"
+  },
+  "devDependencies": {},
+  "bundleDependencies": [],
+
+  "private": true,
+  "main": "oils-renderTable.js"
+  
+}
