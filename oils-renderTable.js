@@ -29,7 +29,6 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 			}
 
 			ModelObj.find(opts.query)
-			    .select(opts.columns.join(' '))
 			    .limit(tableObj.rowsPerPage)
 			    .skip(tableObj.rowsPerPage * (pageNo-1))
 			    .sort(sort)
