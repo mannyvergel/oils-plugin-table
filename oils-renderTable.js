@@ -28,8 +28,11 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 				pageNo = 1;
 			}
 
+			var populate = opts.populate || '';
+
 			ModelObj.find(opts.query)
 				.lean()
+				.populate(populate)
 			    .limit(tableObj.rowsPerPage)
 			    .skip(tableObj.rowsPerPage * (pageNo-1))
 			    .sort(sort)
