@@ -2,17 +2,17 @@
 {%if pagination%}
 <ul class="pagination">
 {%if pagination.startPage > 1%}
-<li><a href="?{{table.tableId}}_p=1">First</a></li>
+<li><a href="?{{table.tableId}}_p=1&{{table.addtlQuery}}">First</a></li>
 <li class="unavailable"><a href="">&hellip;</a></li>
 {%endif%}
 
 {%for page in pagination.pages%}
-<li {%if pagination.pageNo == page%}class="current"{%endif%}><a href="?{{table.tableId}}_p={{page}}">{{page}}</a></li>
+<li {%if pagination.pageNo == page%}class="current"{%endif%}><a href="?{{table.tableId}}_p={{page}}&{{table.addtlQuery}}">{{page}}</a></li>
 {%endfor%}
 
 {%if pagination.endPage < pagination.totalPage%}
 <li class="unavailable"><a href="">&hellip;</a></li>
-<li><a href="?{{table.tableId}}_p={{pagination.totalPage}}">Last</a></li>
+<li><a href="?{{table.tableId}}_p={{pagination.totalPage}}&{{table.addtlQuery}}">Last</a></li>
 {%endif%}
 <!--
   <li class="arrow unavailable"><a href="">&laquo;</a></li>

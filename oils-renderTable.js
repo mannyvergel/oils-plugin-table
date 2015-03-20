@@ -1,7 +1,7 @@
 module.exports = function oilsRenderTable(pluginConf, web, next) {
 	web.renderTable = renderTable;
 	web.utils.getTableFromModel = getTableFromModel;
-
+	web.utils.getCleanQuery = getQueryWithoutTableParams;
 
 	pluginConf = web.utils.extend(pluginConf, require('./conf.js'));
 	var async = require('async');
@@ -17,7 +17,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		var pageNo = opts.pageNo || 1;
 		var sort = opts.sort;
 
-
+		tableObj.addtlQuery = opts.addtlQuery;
 		
 		ModelObj.count(opts.query).exec(function(err, count) {
 			var maxPage = Math.ceil(count/tableObj.rowsPerPage);
@@ -29,6 +29,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 			}
 
 			ModelObj.find(opts.query)
+				.lean()
 			    .limit(tableObj.rowsPerPage)
 			    .skip(tableObj.rowsPerPage * (pageNo-1))
 			    .sort(sort)
@@ -71,7 +72,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 	function renderTable(req, ModelObj, opts, callback) {
 		opts.tableId = opts.tableId || getPrefix(ModelObj);
 		opts.pageNo = req.query[opts.tableId + '_p'] || 1;
-
+		opts.addtlQuery = getQueryWithoutTableParams(req.query, opts.tableId);
 		web.utils.getTableFromModel(ModelObj, opts, function(err, tableObj) {
 			web.templateEngine.render(pluginConf.pluginPath + '/templates/table.html', {table: tableObj}, function(err, resultStr) {
 			            	callback(err, resultStr);
@@ -119,6 +120,22 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 
 	function defaultHandler(record, column, escapedVal, callback) {
 		callback(null, escapedVal);
+	}
+
+	function startsWith(str, prefix) {
+	  return str.substr(0, prefix.length) == prefix;
+	}
+
+	function getQueryWithoutTableParams(q, tableId) {
+		var qArr = [];
+		for (var i in q) {
+			if (!startsWith(i, tableId)) {
+				qArr.push(i + "=" + encodeURIComponent(q[i]));
+			}
+			
+		}
+
+		return qArr.join("&");
 	}
 
 	next();
