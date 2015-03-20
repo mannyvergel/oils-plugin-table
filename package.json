@@ -15,10 +15,10 @@
     "email": "manny@mvergel.com",
     "url": "http://www.mvergel.com/"
   },
-  "homepage": "http://www.github.com/mannyvergel/wateroo-plugin-blog",
+  "homepage": "http://www.github.com/mannyvergel/oils-plugin-table",
   "repository": {
     "type": "git",
-    "url": "https://www.github.com/mannyvergel/wateroo-plugin-blog.git"
+    "url": "https://www.github.com/mannyvergel/oils-plugin-table.git"
   },
 
   "engines": {
@@ -31,7 +31,7 @@
   "devDependencies": {},
   "bundleDependencies": [],
 
-  "private": true,
+  "private": false,
   "main": "oils-renderTable.js"
   
 }
