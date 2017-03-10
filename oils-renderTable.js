@@ -83,8 +83,9 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		opts.tableId = opts.tableId || getPrefix(ModelObj);
 		opts.pageNo = req.query[opts.tableId + '_p'] || 1;
 		opts.addtlQuery = getQueryWithoutTableParams(req.query, opts.tableId);
+		opts.tableTemplate = opts.tableTemplate || (pluginConf.pluginPath + '/templates/table.html')
 		web.utils.getTableFromModel(ModelObj, opts, function(err, tableObj) {
-			web.templateEngine.render(pluginConf.pluginPath + '/templates/table.html', {table: tableObj}, function(err, resultStr) {
+			web.templateEngine.render(opts.tableTemplate, {table: tableObj}, function(err, resultStr) {
 			            	callback(err, resultStr, tableObj);
 			            })
 		})
