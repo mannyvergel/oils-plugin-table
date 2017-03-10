@@ -1,6 +1,6 @@
 {
   "name": "oils-plugin-table",
-  "version": "1.0.3",
+  "version": "2.3.0",
   "description": "Table with pagination plugin for Oils JS",
   "keywords": [
   	"table",

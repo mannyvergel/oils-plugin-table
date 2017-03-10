@@ -18,8 +18,15 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		var sort = opts.sort;
 
 		tableObj.addtlQuery = opts.addtlQuery;
+
+		var query1 = opts.query;
+		var query2 = null;
+		if (Array.isArray(query1)) {
+			query1 = opts.query[0];
+			query2 = opts.query[1];
+		}
 		
-		ModelObj.count(opts.query).exec(function(err, count) {
+		ModelObj.count(query1).exec(function(err, count) {
 			var maxPage = Math.ceil(count/tableObj.rowsPerPage);
 			if (pageNo > maxPage) {
 				pageNo = maxPage;
@@ -30,7 +37,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 
 			var populate = opts.populate || '';
 
-			ModelObj.find(opts.query)
+			ModelObj.find(query1, query2)
 				.lean()
 				.populate(populate)
 			    .limit(tableObj.rowsPerPage)
