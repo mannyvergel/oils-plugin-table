@@ -1,6 +1,6 @@
 {
   "name": "oils-plugin-table",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Table with pagination plugin for Oils JS",
   "keywords": [
   	"table",
@@ -26,7 +26,7 @@
   },
 
   "dependencies": {
-    "async": "0.2.x"
+    "async": "1.5.x"
   },
   "devDependencies": {},
   "bundleDependencies": [],
