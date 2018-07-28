@@ -4,91 +4,112 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 	web.utils.getCleanQuery = getQueryWithoutTableParams;
 
 	pluginConf = web.utils.extend(pluginConf, require('./conf.js'));
-	var async = require('async');
+	const async = require('async');
 
 	function getTableFromModel(ModelObj, opts, callback) {
-		var tableObj = new Object();
-		tableObj.tableId = opts.tableId;
-		tableObj.rowsPerPage = opts.rowsPerPage;
-		if (!tableObj.rowsPerPage) {
-			tableObj.rowsPerPage = pluginConf.defaultRowsPerPage;
-		}
+		return new Promise(function(resolve, reject) {
 
-		var pageNo = opts.pageNo || 1;
-		var sort = opts.sort;
-
-		tableObj.addtlQuery = opts.addtlQuery;
-
-		var query1 = opts.query;
-		var query2 = null;
-		if (Array.isArray(query1)) {
-			query1 = opts.query[0];
-			query2 = opts.query[1];
-		}
-		
-		ModelObj.count(query1).exec(function(err, count) {
-			var maxPage = Math.ceil(count/tableObj.rowsPerPage);
-			if (pageNo > maxPage) {
-				pageNo = maxPage;
-			}
-			if (pageNo < 1) {
-				pageNo = 1;
+			let tableObj = new Object();
+			tableObj.tableId = opts.tableId;
+			tableObj.rowsPerPage = opts.rowsPerPage;
+			if (!tableObj.rowsPerPage) {
+				tableObj.rowsPerPage = pluginConf.defaultRowsPerPage;
 			}
 
-			var populate = opts.populate || '';
+			let pageNo = opts.pageNo || 1;
+			let sort = opts.sort;
 
-			ModelObj.find(query1, query2)
-				.lean()
-				.populate(populate)
-			    .limit(tableObj.rowsPerPage)
-			    .skip(tableObj.rowsPerPage * (pageNo-1))
-			    .sort(sort)
-			    .exec(function(err, records) {
-		        
-		        	
-		        	tableObj.columns = opts.columns;
-		        	tableObj.labels = opts.labels || opts.columns;
-					tableObj.count = count;
-					tableObj.noRecordsFoundLabel = "No records found.";
+			tableObj.addtlQuery = opts.addtlQuery;
 
-					assignAllHandlers(opts.handlers, records, opts.columns, function(err, records) {
-						tableObj.records = records;    	
-						var pagination = null;
+			let query1 = opts.query;
+			let query2 = null;
+			if (Array.isArray(query1)) {
+				query1 = opts.query[0];
+				query2 = opts.query[1];
+			}
+			
+			ModelObj.countDocuments(query1).exec(function(err, count) {
+				let maxPage = Math.ceil(count/tableObj.rowsPerPage);
+				if (pageNo > maxPage) {
+					pageNo = maxPage;
+				}
+				if (pageNo < 1) {
+					pageNo = 1;
+				}
 
-						if (count > tableObj.rowsPerPage) {
-							pagination = new Object();
-							pagination.pageNo = pageNo;
-							pagination.totalPage = maxPage;
-							//console.log('!!!' + pagination.totalPage);
-							pagination.startPage = pageNo < 5 ? 1 : pageNo - 4;
-							pagination.endPage = 8 + pagination.startPage;
-							pagination.endPage = pagination.totalPage < pagination.endPage ? pagination.totalPage : pagination.endPage;
-							pagination.diff = pagination.startPage - pagination.endPage + 8;
-							pagination.startPage -= ((pagination.startPage - pagination.diff) > 0) ? pagination.diff : 0;
-							pagination.pages = [];
-							for (var i = pagination.startPage; i<=pagination.endPage; i++) {
-								pagination.pages.push(i);
+				let populate = opts.populate || '';
+
+				ModelObj.find(query1, query2)
+					.lean()
+					.populate(populate)
+				    .limit(tableObj.rowsPerPage)
+				    .skip(tableObj.rowsPerPage * (pageNo-1))
+				    .sort(sort)
+				    .exec(function(err, records) {
+			        
+			        	
+			        	tableObj.columns = opts.columns;
+			        	tableObj.labels = opts.labels || opts.columns;
+						tableObj.count = count;
+						tableObj.noRecordsFoundLabel = "No records found.";
+
+						assignAllHandlers(opts.handlers, records, opts.columns, function(err, records) {
+							tableObj.records = records;    	
+							let pagination = null;
+
+							if (count > tableObj.rowsPerPage) {
+								pagination = new Object();
+								pagination.pageNo = pageNo;
+								pagination.totalPage = maxPage;
+								//console.log('!!!' + pagination.totalPage);
+								pagination.startPage = pageNo < 5 ? 1 : pageNo - 4;
+								pagination.endPage = 8 + pagination.startPage;
+								pagination.endPage = pagination.totalPage < pagination.endPage ? pagination.totalPage : pagination.endPage;
+								pagination.diff = pagination.startPage - pagination.endPage + 8;
+								pagination.startPage -= ((pagination.startPage - pagination.diff) > 0) ? pagination.diff : 0;
+								pagination.pages = [];
+								for (let i = pagination.startPage; i<=pagination.endPage; i++) {
+									pagination.pages.push(i);
+								}
+
 							}
 
-						}
+							tableObj.pagination = pagination;
 
-						tableObj.pagination = pagination;
-						callback(null, tableObj);
-					})
-		        })
-		    })
+							resolve(tableObj);
+							if (callback) {
+								callback(null, tableObj);
+							}
+						})
+			        })
+			    })
+		});
+
 	}
 
 	function renderTable(req, ModelObj, opts, callback) {
-		opts.tableId = opts.tableId || getPrefix(ModelObj);
-		opts.pageNo = req.query[opts.tableId + '_p'] || 1;
-		opts.addtlQuery = getQueryWithoutTableParams(req.query, opts.tableId);
-		opts.tableTemplate = opts.tableTemplate || (pluginConf.pluginPath + '/templates/table.html')
-		web.utils.getTableFromModel(ModelObj, opts, function(err, tableObj) {
-			web.templateEngine.render(opts.tableTemplate, {table: tableObj}, function(err, resultStr) {
-			            	callback(err, resultStr, tableObj);
-			            })
+
+		return new Promise(function(resolve, reject) {
+			opts.tableId = opts.tableId || getPrefix(ModelObj);
+			opts.pageNo = req.query[opts.tableId + '_p'] || 1;
+			opts.addtlQuery = getQueryWithoutTableParams(req.query, opts.tableId);
+			opts.tableTemplate = opts.tableTemplate || (pluginConf.pluginPath + '/templates/table.html')
+			web.utils.getTableFromModel(ModelObj, opts, function(err, tableObj) {
+				web.templateEngine.render(opts.tableTemplate, {table: tableObj}, function(err, resultStr) {
+
+					if (err) {
+						reject(err);
+					} else {
+						resolve(resultStr);
+					}
+
+					if (callback) {
+	        	callback(err, resultStr, tableObj);
+	        }
+        })
+			})
 		})
+		
 	}
 
 
@@ -122,7 +143,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 	}
 
 	function assignHandler(key, handler, record, callback) {
-		var escapedVal = web.templateEngine.filters.escape(record[key]);
+		let escapedVal = web.templateEngine.filters.escape(record[key]);
 		handler(record, key, escapedVal, function(err, value) {
 			record[key] = value;
 			callback();
@@ -138,8 +159,8 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 	}
 
 	function getQueryWithoutTableParams(q, tableId) {
-		var qArr = [];
-		for (var i in q) {
+		let qArr = [];
+		for (let i in q) {
 			if (!startsWith(i, tableId)) {
 				qArr.push(i + "=" + encodeURIComponent(q[i]));
 			}

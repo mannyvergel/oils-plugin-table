@@ -1,9 +1,9 @@
 {
   "name": "oils-plugin-table",
-  "version": "2.3.2",
+  "version": "3.0.0",
   "description": "Table with pagination plugin for Oils JS",
   "keywords": [
-  	"table",
+    "table",
     "plugin",
     "oils",
     "pagination",
@@ -15,23 +15,20 @@
     "email": "manny@mvergel.com",
     "url": "http://www.mvergel.com/"
   },
+  "license": "MIT",
   "homepage": "http://www.github.com/mannyvergel/oils-plugin-table",
   "repository": {
     "type": "git",
     "url": "https://www.github.com/mannyvergel/oils-plugin-table.git"
   },
-
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">= 8.0.0"
   },
-
   "dependencies": {
-    "async": "1.5.x"
+    "async": "2.6.x"
   },
   "devDependencies": {},
   "bundleDependencies": [],
-
   "private": false,
   "main": "oils-renderTable.js"
-  
 }
