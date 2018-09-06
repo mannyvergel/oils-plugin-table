@@ -27,6 +27,11 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 				query1 = opts.query[0];
 				query2 = opts.query[1];
 			}
+
+			//mongoose backwards compat
+			if (!ModelObj.countDocuments) {
+				ModelObj.countDocuments = ModelObj.count;
+			}
 			
 			ModelObj.countDocuments(query1).exec(function(err, count) {
 				let maxPage = Math.ceil(count/tableObj.rowsPerPage);
