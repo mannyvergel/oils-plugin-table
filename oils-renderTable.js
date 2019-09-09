@@ -4,92 +4,88 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 	web.utils.getCleanQuery = getQueryWithoutTableParams;
 
 	pluginConf = web.utils.extend(pluginConf, require('./conf.js'));
-	const async = require('async');
 
-	function getTableFromModel(ModelObj, opts, callback) {
-		return new Promise(function(resolve, reject) {
+	async function getTableFromModel(ModelObj, opts, callback) {
+		let tableObj = new Object();
+		tableObj.tableId = opts.tableId;
+		tableObj.rowsPerPage = opts.rowsPerPage;
+		if (!tableObj.rowsPerPage) {
+			tableObj.rowsPerPage = pluginConf.defaultRowsPerPage;
+		}
 
-			let tableObj = new Object();
-			tableObj.tableId = opts.tableId;
-			tableObj.rowsPerPage = opts.rowsPerPage;
-			if (!tableObj.rowsPerPage) {
-				tableObj.rowsPerPage = pluginConf.defaultRowsPerPage;
+		let pageNo = opts.pageNo || 1;
+		let sort = opts.sort;
+
+		tableObj.addtlQuery = opts.addtlQuery;
+
+		let query1 = opts.query;
+		let query2 = null;
+		if (Array.isArray(query1)) {
+			query1 = opts.query[0];
+			query2 = opts.query[1];
+		}
+
+		opts.sequentialHandleExecution = opts.sequentialHandleExecution || pluginConf.defaultSequentialHandleExecution;
+
+		//mongoose backwards compat
+		if (!ModelObj.countDocuments) {
+			ModelObj.countDocuments = ModelObj.count;
+		}
+		
+		let count = await ModelObj.countDocuments(query1).exec();
+
+		let maxPage = Math.ceil(count/tableObj.rowsPerPage);
+		if (pageNo > maxPage) {
+			pageNo = maxPage;
+		}
+		if (pageNo < 1) {
+			pageNo = 1;
+		}
+
+		let populate = opts.populate || '';
+
+		let records = await	ModelObj.find(query1, query2)
+			.lean()
+			.populate(populate)
+	    .limit(tableObj.rowsPerPage)
+	    .skip(tableObj.rowsPerPage * (pageNo-1))
+	    .sort(sort)
+	    .exec();
+
+		tableObj.columns = opts.columns;
+		tableObj.labels = opts.labels || opts.columns;
+		tableObj.count = count;
+		tableObj.noRecordsFoundLabel = "No records found.";
+
+		assignAllHandlers(opts, records);
+
+		tableObj.records = records;    	
+		let pagination = null;
+
+		if (count > tableObj.rowsPerPage) {
+			pagination = new Object();
+			pagination.pageNo = pageNo;
+			pagination.totalPage = maxPage;
+			//console.log('!!!' + pagination.totalPage);
+			pagination.startPage = pageNo < 5 ? 1 : pageNo - 4;
+			pagination.endPage = 8 + pagination.startPage;
+			pagination.endPage = pagination.totalPage < pagination.endPage ? pagination.totalPage : pagination.endPage;
+			pagination.diff = pagination.startPage - pagination.endPage + 8;
+			pagination.startPage -= ((pagination.startPage - pagination.diff) > 0) ? pagination.diff : 0;
+			pagination.pages = [];
+			for (let i = pagination.startPage; i<=pagination.endPage; i++) {
+				pagination.pages.push(i);
 			}
 
-			let pageNo = opts.pageNo || 1;
-			let sort = opts.sort;
+		}
 
-			tableObj.addtlQuery = opts.addtlQuery;
+		tableObj.pagination = pagination;
 
-			let query1 = opts.query;
-			let query2 = null;
-			if (Array.isArray(query1)) {
-				query1 = opts.query[0];
-				query2 = opts.query[1];
-			}
+		if (callback) {
+			callback(null, tableObj);
+		}
 
-			//mongoose backwards compat
-			if (!ModelObj.countDocuments) {
-				ModelObj.countDocuments = ModelObj.count;
-			}
-			
-			ModelObj.countDocuments(query1).exec(function(err, count) {
-				let maxPage = Math.ceil(count/tableObj.rowsPerPage);
-				if (pageNo > maxPage) {
-					pageNo = maxPage;
-				}
-				if (pageNo < 1) {
-					pageNo = 1;
-				}
-
-				let populate = opts.populate || '';
-
-				ModelObj.find(query1, query2)
-					.lean()
-					.populate(populate)
-				    .limit(tableObj.rowsPerPage)
-				    .skip(tableObj.rowsPerPage * (pageNo-1))
-				    .sort(sort)
-				    .exec(function(err, records) {
-			        
-			        	
-			        	tableObj.columns = opts.columns;
-			        	tableObj.labels = opts.labels || opts.columns;
-						tableObj.count = count;
-						tableObj.noRecordsFoundLabel = "No records found.";
-
-						assignAllHandlers(opts.handlers, records, opts.columns, function(err, records) {
-							tableObj.records = records;    	
-							let pagination = null;
-
-							if (count > tableObj.rowsPerPage) {
-								pagination = new Object();
-								pagination.pageNo = pageNo;
-								pagination.totalPage = maxPage;
-								//console.log('!!!' + pagination.totalPage);
-								pagination.startPage = pageNo < 5 ? 1 : pageNo - 4;
-								pagination.endPage = 8 + pagination.startPage;
-								pagination.endPage = pagination.totalPage < pagination.endPage ? pagination.totalPage : pagination.endPage;
-								pagination.diff = pagination.startPage - pagination.endPage + 8;
-								pagination.startPage -= ((pagination.startPage - pagination.diff) > 0) ? pagination.diff : 0;
-								pagination.pages = [];
-								for (let i = pagination.startPage; i<=pagination.endPage; i++) {
-									pagination.pages.push(i);
-								}
-
-							}
-
-							tableObj.pagination = pagination;
-
-							resolve(tableObj);
-							if (callback) {
-								callback(null, tableObj);
-							}
-						})
-			        })
-			    })
-		});
-
+		return tableObj;
 	}
 
 	function renderTable(req, ModelObj, opts, callback) {
@@ -123,41 +119,58 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		return ModelObj.modelName.toLowerCase();
 	}
 
-	function assignAllHandlers(handlers, records, columns, assignAllHandlersCallback) {
-		handlers = handlers || new Object();
+	async function assignAllHandlers(opts, records, assignAllHandlersCallback) {
+		let handlers = opts.handlers || new Object();
+		let columns = opts.columns;
+		let sequentialHandleExecution = opts.sequentialHandleExecution;
 
 
-		async.each(records, function(record, callback) {
+		if (records) {
+			let handlerPromises = [];
+			for (let record of records) {
+				for (let column of columns) {
+					if (!handlers[column]) {
+						handlers[column] = defaultHandler;
+					}
 
-			async.each(columns, function(column, columnsCallback) {
-	
-				if (!handlers[column]) {
-					handlers[column] = defaultHandler;
+					handlerPromises.push(execHandlerPromise(column, handlers[column], record));
+					
 				}
+			}
 
-				assignHandler(column, handlers[column], record, columnsCallback);
-			
-			}, function(err) {
-				callback();
-			})
-			
-		}, function(err) {
-			assignAllHandlersCallback(err, records);
-		})
-
+			if (sequentialHandleExecution) {
+				for (let handlerPromise of handlerPromises) {
+					await handlerPromise;
+				}
+			} else {
+				await Promise.all(handlerPromises);
+			}
+		} else {
+			console.warn("table records not found.");
+		}
 		
 	}
 
-	function assignHandler(key, handler, record, callback) {
-		let escapedVal = web.templateEngine.filters.escape(record[key]);
-		handler(record, key, escapedVal, function(err, value) {
-			record[key] = value;
-			callback();
+	function execHandlerPromise(key, handler, record) {
+		return new Promise(function(resolve, reject) {
+			let escapedVal = web.stringUtils.escapeHTML(record[key]);
+			let maybePromise = handler(record, key, escapedVal, function(err, value) {
+				record[key] = value;
+				resolve();
+			});
+
+			if (maybePromise) {
+				maybePromise.then(function(val) {
+					record[key] = val;
+					resolve();
+				});
+			}
 		})
+		
 	}
 
-	function defaultHandler(record, column, escapedVal, callback) {
-		callback(null, escapedVal);
+	async function defaultHandler(record, column, escapedVal) {
+		return escapedVal;
 	}
 
 	function startsWith(str, prefix) {

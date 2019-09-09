@@ -1,3 +1,4 @@
 module.exports = {
-	defaultRowsPerPage: 10
+	defaultRowsPerPage: 10,
+  defaultSequentialHandleExecution: false,
 }
