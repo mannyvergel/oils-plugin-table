@@ -57,7 +57,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		tableObj.count = count;
 		tableObj.noRecordsFoundLabel = "No records found.";
 
-		assignAllHandlers(opts, records);
+		await assignAllHandlers(opts, records);
 
 		tableObj.records = records;    	
 		let pagination = null;
@@ -133,16 +133,16 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 						handlers[column] = defaultHandler;
 					}
 
-					handlerPromises.push(execHandlerPromise(column, handlers[column], record));
+					if (sequentialHandleExecution) {
+						await execHandlerPromise(column, handlers[column], record);
+					} else {
+						handlerPromises.push(execHandlerPromise(column, handlers[column], record));
+					}
 					
 				}
 			}
 
-			if (sequentialHandleExecution) {
-				for (let handlerPromise of handlerPromises) {
-					await handlerPromise;
-				}
-			} else {
+			if (!sequentialHandleExecution) {
 				await Promise.all(handlerPromises);
 			}
 		} else {
