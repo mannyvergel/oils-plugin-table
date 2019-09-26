@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = function oilsRenderTable(pluginConf, web, next) {
 	web.renderTable = renderTable;
 	web.utils.getTableFromModel = getTableFromModel;
@@ -55,7 +57,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		tableObj.columns = opts.columns;
 		tableObj.labels = opts.labels || opts.columns;
 		tableObj.count = count;
-		tableObj.noRecordsFoundLabel = "No records found.";
+		tableObj.noRecordsFoundLabel = opts.noRecordsFoundLabel || "No records found.";
 
 		await assignAllHandlers(opts, records);
 
