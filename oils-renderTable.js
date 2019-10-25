@@ -15,7 +15,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 			tableObj.rowsPerPage = pluginConf.defaultRowsPerPage;
 		}
 
-		let pageNo = opts.pageNo || 1;
+		
 		let sort = opts.sort;
 
 		tableObj.addtlQuery = opts.addtlQuery;
@@ -36,7 +36,11 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		
 		let count = await ModelObj.countDocuments(query1).exec();
 
+		let pageNo = opts.pageNo || 1;
 		let maxPage = Math.ceil(count/tableObj.rowsPerPage);
+		if (pageNo === "last") {
+			pageNo = maxPage;
+		}
 		if (pageNo > maxPage) {
 			pageNo = maxPage;
 		}

@@ -14,18 +14,6 @@
 <li class="unavailable"><a href="">&hellip;</a></li>
 <li><a href="?{{table.tableId}}_p={{pagination.totalPage}}&{{table.addtlQuery}}">Last</a></li>
 {%endif%}
-<!--
-  <li class="arrow unavailable"><a href="">&laquo;</a></li>
-  <li class="current"><a href="">1</a></li>
-  <li><a href="">2</a></li>
-  <li><a href="">3</a></li>
-  <li><a href="">4</a></li>
-  <li class="unavailable"><a href="">&hellip;</a></li>
-  <li><a href="">12</a></li>
-  <li><a href="">13</a></li>
-  <li class="arrow"><a href="">&raquo;</a></li>
-
-  -->
 </ul>
 {%endif%}
 
@@ -41,9 +29,10 @@
 
 {%if table.count > 0%}
   {%for record in table.records%}
-  <tr>
+  <tr{%if loop.index == 1 and pagination.pageNo == 1%} class="first-ever"{%endif%}>
+  {%set isLast = loop.last%}
   {%for col in table.columns%}
-  <td>{{record[col] | safe}}</td>
+  <td>{%if loop.index == 1 and isLast%}<a name="lastPost"></a>{%endif%}{{record[col] | safe}}</td>
   {%endfor%}
   </tr>
   {%endfor%}
