@@ -40,7 +40,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		let count = await ModelObj.countDocuments(query1).exec();
 
 		let pageNo = opts.pageNo || 1;
-		tableObj.pageNo = pageNo;
+		
 		let maxPage = tableObj.pageLimit || Math.ceil(count/tableObj.rowsPerPage);
 
 		if (pageNo === "last") {
@@ -52,6 +52,8 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		if (pageNo < 1) {
 			pageNo = 1;
 		}
+		
+		tableObj.pageNo = pageNo;
 
 		let populate = opts.populate || '';
 
