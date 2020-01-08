@@ -5,7 +5,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 	web.utils.getTableFromModel = getTableFromModel;
 	web.utils.getCleanQuery = getQueryWithoutTableParams;
 
-	pluginConf = web.utils.extend(pluginConf, require('./conf.js'));
+	pluginConf = web.utils.extend(require('./conf.js'), pluginConf || {});
 
 	async function getTableFromModel(ModelObj, opts, callback) {
 		let tableObj = new Object();
