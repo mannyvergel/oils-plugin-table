@@ -168,10 +168,14 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		return new Promise(function(resolve, reject) {
 			let rawVal = record[key];
 			let escapedVal; 
-			if (pluginConf.shouldConvertEscapedValueToLocaleString) {
-				escapedVal = web.stringUtils.escapeHTML(rawVal && rawVal.toLocaleString());
+			if (rawVal !== null && rawVal !== undefined) {
+				if (pluginConf.shouldConvertEscapedValueToLocaleString) {
+					escapedVal = web.stringUtils.escapeHTML(rawVal && rawVal.toLocaleString());
+				} else {
+					escapedVal = web.stringUtils.escapeHTML(rawVal);
+				}
 			} else {
-				escapedVal = web.stringUtils.escapeHTML(rawVal);
+				escapedVal = '';
 			}
 			let maybePromise = handler(record, key, escapedVal, function(err, value) {
 				record[key] = value;
