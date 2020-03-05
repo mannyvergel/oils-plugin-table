@@ -1,18 +1,22 @@
 {%set pagination = table.pagination%}
+{%set currentPageNo = pagination.pageNo%}
+
 {%if pagination%}
+<a name="{{table.tableId}}_A_PAGINATION"></a>
 <ul class="pagination">
 {%if pagination.startPage > 1%}
-<li><a href="?{{table.tableId}}_p=1&{{table.addtlQuery}}">First</a></li>
-<li class="unavailable"><a href="">&hellip;</a></li>
+<li class="page-item"><a class="page-link" href="?{{table.tableId}}_p=1&{{table.addtlQuery}}#{{table.tableId}}_A_PAGINATION">First</a></li>
+<li class="page-item unavailable"><a class="page-link" href="#" onclick="return false;" style="color: #333;">&hellip;</a></li>
 {%endif%}
 
 {%for page in pagination.pages%}
-<li {%if pagination.pageNo == page%}class="current"{%endif%}><a href="?{{table.tableId}}_p={{page}}&{{table.addtlQuery}}">{{page}}</a></li>
+<li class="page-item{%if currentPageNo == page%} current active{%endif%}">
+  <a class="page-link" href="?{{table.tableId}}_p={{page}}&{{table.addtlQuery}}#{{table.tableId}}_A_PAGINATION">{{page}}</a></li>
 {%endfor%}
 
 {%if pagination.endPage < pagination.totalPage%}
-<li class="unavailable"><a href="">&hellip;</a></li>
-<li><a href="?{{table.tableId}}_p={{pagination.totalPage}}&{{table.addtlQuery}}">Last</a></li>
+<li class="page-item unavailable"><a class="page-link" href="#" onclick="return false;" style="color: #333;">&hellip;</a></li>
+<li><a class="page-link" href="?{{table.tableId}}_p={{pagination.totalPage}}&{{table.addtlQuery}}#{{table.tableId}}_A_PAGINATION">Last</a></li>
 {%endif%}
 </ul>
 {%endif%}
