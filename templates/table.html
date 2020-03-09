@@ -24,8 +24,8 @@
 <table class="table{{addtlTableClass}}">
 <thead>
 <tr>
-{%for fieldLabel in table.labels%}
-<td>{{fieldLabel}}</td>
+{%for colName in table.columns%}
+<td{%if table.headerOpts[colName].style%} style="{{table.headerOpts[colName].style}}"{%endif%}>{{table.headerOpts[colName].label}}</td>
 {%endfor%}
 </tr>
 </thead>

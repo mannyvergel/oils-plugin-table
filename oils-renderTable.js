@@ -67,6 +67,26 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 
 		tableObj.columns = opts.columns;
 		tableObj.labels = opts.labels || opts.columns;
+
+		tableObj.headerOpts = opts.headerOpts || {};
+		for (let i=0; i<tableObj.columns.length; i++) {
+			let col = tableObj.columns[i];
+			if (!tableObj.headerOpts[col]) {
+				tableObj.headerOpts[col] = {};
+			}
+
+			if (tableObj.headerOpts[col].label === undefined) {
+				tableObj.headerOpts[col].label = tableObj.labels[i];
+			}
+
+			if (tableObj.headerOpts[col].width) {
+				if (!tableObj.headerOpts[col].style) {
+					tableObj.headerOpts[col].style = "";
+				}
+				tableObj.headerOpts[col].style = "width: " + web.stringUtils.escapeHTML(tableObj.headerOpts[col].width) + "; " + tableObj.headerOpts[col].style;
+			}
+		}
+
 		tableObj.count = count;
 		tableObj.noRecordsFoundLabel = opts.noRecordsFoundLabel || "No records found.";
 
