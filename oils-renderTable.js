@@ -72,7 +72,12 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 
 		await assignAllHandlers(opts, records);
 
-		tableObj.records = records;    	
+		tableObj.records = records;
+
+	  if (opts.afterFindRecords) {
+	  	await opts.afterFindRecords(records, tableObj);
+	  }
+
 		let pagination = null;
 
 		if (maxPage > 1) {
@@ -134,6 +139,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 
 	async function assignAllHandlers(opts, records, assignAllHandlersCallback) {
 		let handlers = opts.handlers || new Object();
+		let recordHandler = opts.recordHandler;
 		let columns = opts.columns;
 		let sequentialHandleExecution = opts.sequentialHandleExecution;
 
@@ -141,6 +147,10 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		if (records) {
 			let handlerPromises = [];
 			for (let record of records) {
+				if (recordHandler) {
+					await recordHandler(record, opts);
+				}
+				
 				for (let column of columns) {
 					if (!handlers[column]) {
 						handlers[column] = defaultHandler;
