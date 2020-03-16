@@ -41,7 +41,7 @@
   </tr>
   {%endfor%}
 {%else%}
-  <tr><td colspan="{{table.columns.length}}">{{table.noRecordsFoundLabel}}</td></tr>
+  <tr><td colspan="{{table.columns.length}}">{{table.noRecordsFoundHtml | safe}}</td></tr>
 {%endif%}
 </tbody>
 </table>

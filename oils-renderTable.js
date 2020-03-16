@@ -88,15 +88,17 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		}
 
 		tableObj.count = count;
-		tableObj.noRecordsFoundLabel = opts.noRecordsFoundLabel || "No records found.";
 
 		await assignAllHandlers(opts, records);
 
 		tableObj.records = records;
 
 	  if (opts.afterFindRecords) {
-	  	await opts.afterFindRecords(records, tableObj);
+	  	await opts.afterFindRecords(records, tableObj, opts);
 	  }
+
+	  tableObj.noRecordsFoundLabel = opts.noRecordsFoundLabel || "No records found.";
+		tableObj.noRecordsFoundHtml = opts.noRecordsFoundHtml || web.stringUtils.escapeHTML(tableObj.noRecordsFoundLabel);
 
 		let pagination = null;
 
