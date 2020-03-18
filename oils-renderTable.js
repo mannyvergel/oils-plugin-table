@@ -65,10 +65,10 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 	    .sort(sort)
 	    .exec();
 
-		tableObj.columns = opts.columns;
-		tableObj.labels = opts.labels || opts.columns;
+		tableObj.columns = opts.columns.map(a=>(web.objectUtils.isString(a) ? a : a.id));
+		tableObj.labels = opts.labels || tableObj.columns;
 
-		tableObj.headerOpts = opts.headerOpts || {};
+		tableObj.headerOpts = opts.headerOpts || headerOptsFromColumns(opts.columns);
 		for (let i=0; i<tableObj.columns.length; i++) {
 			let col = tableObj.columns[i];
 			if (!tableObj.headerOpts[col]) {
@@ -89,7 +89,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 
 		tableObj.count = count;
 
-		await assignAllHandlers(opts, records);
+		await assignAllHandlers(tableObj, opts, records);
 
 		tableObj.records = records;
 
@@ -159,10 +159,10 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		return ModelObj.modelName.toLowerCase();
 	}
 
-	async function assignAllHandlers(opts, records, assignAllHandlersCallback) {
+	async function assignAllHandlers(tableObj, opts, records, assignAllHandlersCallback) {
 		let handlers = opts.handlers || new Object();
 		let recordHandler = opts.recordHandler;
-		let columns = opts.columns;
+		let columns = tableObj.columns;
 		let sequentialHandleExecution = opts.sequentialHandleExecution;
 
 
@@ -174,14 +174,15 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 				}
 				
 				for (let column of columns) {
-					if (!handlers[column]) {
-						handlers[column] = defaultHandler;
-					}
+					let currHandler = handlers[column] 
+					  || (tableObj.headerOpts[column] && tableObj.headerOpts[column].handler)
+					  || defaultHandler;
+					
 
 					if (sequentialHandleExecution) {
-						await execHandlerPromise(column, handlers[column], record);
+						await execHandlerPromise(column, currHandler, record);
 					} else {
-						handlerPromises.push(execHandlerPromise(column, handlers[column], record));
+						handlerPromises.push(execHandlerPromise(column, currHandler, record));
 					}
 					
 				}
@@ -242,6 +243,20 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		}
 
 		return qArr.join("&");
+	}
+
+	function headerOptsFromColumns(columns) {
+		let headerOpts = {};
+		for (let colOpt of columns) {
+			if (colOpt && !web.objectUtils.isString(colOpt)) {
+				headerOpts[colOpt.id] = colOpt;
+			} else {
+				// colOpt is a string
+				headerOpts[colOpt] = {};
+			}
+		}
+
+		return headerOpts;
 	}
 
 	next();
