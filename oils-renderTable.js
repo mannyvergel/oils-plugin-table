@@ -57,14 +57,28 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 
 		let populate = opts.populate || '';
 
-		let records = await	ModelObj.find(query1, query2)
-			.lean()
+		let modelBuild = ModelObj.find(query1, query2)
+			
 			.populate(populate)
 	    .limit(tableObj.rowsPerPage)
 	    .skip(tableObj.rowsPerPage * (pageNo-1))
 	    .sort(sort)
-	    .exec();
+		
+		if (opts.lean === undefined) {
+			opts.lean = true;
+		}
 
+		if (opts.includeVirtuals) {
+			opts.lean = false;
+		}
+
+	  if (opts.lean) {
+	  	modelBuild.lean()
+	  }
+
+	  let records = await	modelBuild.exec();
+
+	  opts.columns = opts.columns || opts.cols;
 		tableObj.columns = opts.columns.map(a=>(web.objectUtils.isString(a) ? a : a.id));
 		tableObj.labels = opts.labels || tableObj.columns;
 
