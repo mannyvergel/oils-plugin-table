@@ -76,6 +76,10 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 	  	modelBuild.lean()
 	  }
 
+	  if (opts.caseInsensitiveSorting || opts.collate) {
+			modelBuild.collation({locale: 'en'});
+		}
+
 	  let records = await	modelBuild.exec();
 
 	  opts.columns = opts.columns || opts.cols;
