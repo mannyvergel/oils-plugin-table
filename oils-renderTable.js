@@ -72,6 +72,8 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 			opts.lean = false;
 		}
 
+		tableObj.lean = opts.lean;
+
 	  if (opts.lean) {
 	  	modelBuild.lean()
 	  }
@@ -198,9 +200,9 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 					
 
 					if (sequentialHandleExecution) {
-						await execHandlerPromise(column, currHandler, record);
+						await execHandlerPromise(tableObj, column, currHandler, record);
 					} else {
-						handlerPromises.push(execHandlerPromise(column, currHandler, record));
+						handlerPromises.push(execHandlerPromise(tableObj, column, currHandler, record));
 					}
 					
 				}
@@ -215,7 +217,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		
 	}
 
-	function execHandlerPromise(key, handler, record) {
+	function execHandlerPromise(tableObj, key, handler, record) {
 		return new Promise(function(resolve, reject) {
 			let rawVal = record[key];
 			let escapedVal; 
@@ -228,14 +230,29 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 			} else {
 				escapedVal = '';
 			}
-			let maybePromise = handler(record, key, escapedVal, function(err, value) {
-				record[key] = value;
+			let maybePromise = handler(record, key, escapedVal, function(err, val) {
+				if (tableObj.lean) {
+					record[key] = val;
+				} else {
+					// use define property because of virtuals
+					Object.defineProperty(record, key, {configurable: true, get: function() {
+						return val;
+					}});
+				}
+				
 				resolve();
 			});
 
 			if (maybePromise) {
 				maybePromise.then(function(val) {
-					record[key] = val;
+					if (tableObj.lean) {
+						record[key] = val;
+					} else {
+						// use define property because of virtuals
+						Object.defineProperty(record, key, {configurable: true, get: function() {
+							return val;
+						}});
+					}
 					resolve();
 				});
 			}
