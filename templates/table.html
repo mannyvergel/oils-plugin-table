@@ -25,7 +25,29 @@
 <thead>
 <tr>
 {%for colName in table.columns%}
-<td{%if table.headerOpts[colName].style%} style="{{table.headerOpts[colName].style}}"{%endif%}>{{table.headerOpts[colName].label}}</td>
+<td{%if table.headerOpts[colName].style%} style="{{table.headerOpts[colName].style}}"{%endif%}>
+{%set sortableObj = table.sortableMap[colName]%}
+
+{%if sortableObj == 1%}
+  {%set sortAscDescNext = -1%}
+{%else%}
+  {%set sortAscDescNext = 1%}
+{%endif%}
+
+{%if sortableObj%}
+<a style="text-decoration: none;" href="#" onclick="{{table.clientSortFunc}}('{{colName}}',  {{sortAscDescNext}}, '{{table.tableId}}'); return false;">{{table.headerOpts[colName].label}} 
+
+{%if sortableObj == -1%}
+<i class="fa fa-sort-desc"></i>
+{%elif sortableObj == 1%}
+<i class="fa fa-sort-asc"></i>
+{%endif%}
+</a>
+{%else%}
+{{table.headerOpts[colName].label}}
+{%endif%}
+
+</td>
 {%endfor%}
 </tr>
 </thead>
