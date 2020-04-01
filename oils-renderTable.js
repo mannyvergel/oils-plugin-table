@@ -300,7 +300,8 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		let headerOpts = {};
 		for (let colOpt of columns) {
 			if (colOpt && !web.objectUtils.isString(colOpt)) {
-				headerOpts[colOpt.id] = colOpt;
+				// colOpt is a map
+				headerOpts[colOpt.id] = {...colOpt};
 			} else {
 				// colOpt is a string
 				headerOpts[colOpt] = {};
