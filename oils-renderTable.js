@@ -171,7 +171,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 			opts.pageNo = req.query[opts.tableId + '_p'] || 1;
 			opts.addtlQuery = getQueryWithoutTableParams(req.query, opts.tableId);
 			opts.addtlTableClass = opts.addtlTableClass ? (" " + opts.addtlTableClass) : "";
-			opts.tableTemplate = opts.tableTemplate || (pluginConf.pluginPath + '/templates/table.html')
+			opts.tableTemplate = opts.tableTemplate || pluginConf.tableTemplate;
 			web.utils.getTableFromModel(ModelObj, opts, function(err, tableObj) {
 				web.templateEngine.render(opts.tableTemplate, {table: tableObj, addtlTableClass: opts.addtlTableClass}, function(err, resultStr) {
 
