@@ -146,14 +146,24 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		if (opts.sortable) {
 			opts.sortable = opts.sortable.map(a=>(web.objectUtils.isString(a) ? {id: a} : a));
 			let hasSortable = false;
+			let firstSortMap = {};
+			for (let key in sort) {
+				firstSortMap[key] = sort[key];
+				break;
+			}
+
 			for (let item of opts.sortable) {
-				tableObj.sortableMap[item.id] = sort[item.id] || 100;
+				tableObj.sortableMap[item.id] = firstSortMap[item.id] || 100;
 				hasSortable = true;
 			}
 
 			tableObj.clientSortFunc = opts.clientSortFunc;
-			if (hasSortable && !tableObj.clientSortFunc) {
-				throw new Error("clientSortFunc option has not been set for sorting");
+			if (hasSortable) {
+				if (!tableObj.clientSortFunc) {
+					throw new Error("clientSortFunc option has not been set for sorting");
+				}
+
+				tableObj.firstSortable = opts.sortable[0];
 			}
 		}
 
