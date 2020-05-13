@@ -245,7 +245,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 
 	function execHandlerPromise(tableObj, key, handler, record) {
 		return new Promise(function(resolve, reject) {
-			let rawVal = record[key];
+			let rawVal = resolvePath(record, key);
 			let escapedVal; 
 			if (rawVal !== null && rawVal !== undefined) {
 				if (pluginConf.shouldConvertEscapedValueToLocaleString) {
@@ -320,6 +320,12 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 
 		return headerOpts;
 	}
+
+
+	function resolvePath(object, path, defaultValue) {
+	  return path.split('.').reduce((o, p) => o ? o[p] : defaultValue, object)
+	}
+
 
 	next();
 }
