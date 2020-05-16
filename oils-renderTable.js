@@ -308,6 +308,10 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 
 	async function defaultHandler(record, key, opts) {
 		let rawVal = resolvePath(record, key);
+		if (rawVal === undefined || rawVal === null) {
+			return '';
+		}
+		
 		let escapedVal;
 		if (pluginConf.shouldConvertEscapedValueToLocaleString) {
 			escapedVal = web.stringUtils.escapeHTML(rawVal && rawVal.toLocaleString && rawVal.toLocaleString());
