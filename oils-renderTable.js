@@ -226,9 +226,9 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 					
 
 					if (sequentialHandleExecution) {
-						await execHandlerPromise(tableObj, column, currHandler, record);
+						await execHandlerPromise(tableObj, column, currHandler, record, opts);
 					} else {
-						handlerPromises.push(execHandlerPromise(tableObj, column, currHandler, record));
+						handlerPromises.push(execHandlerPromise(tableObj, column, currHandler, record, opts));
 					}
 					
 				}
@@ -243,7 +243,25 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		
 	}
 
-	function execHandlerPromise(tableObj, key, handler, record) {
+	async function execHandlerPromise(tableObj, key, handler, record, opts) {
+
+		if (handler.length === 3) {
+			// new way is to have an async function(record, key, opts) where opts can contain req
+			let val = await handler(record, key, opts);
+			if (tableObj.lean) {
+				record[key] = val;
+			} else {
+				Object.defineProperty(record, key, {configurable: true, get: function() {
+					return val;
+				}});
+			}
+		} else {
+			// TODO: in the far future, you can remove this backwards compat
+			return await execHandlerPromiseOld(tableObj, key, handler, record);
+		}
+	}
+
+	function execHandlerPromiseOld(tableObj, key, handler, record) {
 		return new Promise(function(resolve, reject) {
 			let rawVal = resolvePath(record, key);
 			let escapedVal; 
@@ -256,6 +274,8 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 			} else {
 				escapedVal = '';
 			}
+
+
 			let maybePromise = handler(record, key, escapedVal, function(err, val) {
 				if (tableObj.lean) {
 					record[key] = val;
@@ -286,7 +306,14 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		
 	}
 
-	async function defaultHandler(record, column, escapedVal) {
+	async function defaultHandler(record, key, opts) {
+		let rawVal = resolvePath(record, key);
+		let escapedVal;
+		if (pluginConf.shouldConvertEscapedValueToLocaleString) {
+			escapedVal = web.stringUtils.escapeHTML(rawVal && rawVal.toLocaleString && rawVal.toLocaleString());
+		} else {
+			escapedVal = web.stringUtils.escapeHTML(rawVal);
+		}
 		return escapedVal;
 	}
 
