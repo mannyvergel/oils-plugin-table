@@ -4,6 +4,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 	web.renderTable = renderTable;
 	web.utils.getTableFromModel = getTableFromModel;
 	web.utils.getCleanQuery = getQueryWithoutTableParams;
+	web.utils.getQueryExceptTablePage = getQueryExceptTablePage;
 
 	pluginConf = web.utils.extend(require('./conf.js'), pluginConf || {});
 
@@ -179,7 +180,7 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		return new Promise(function(resolve, reject) {
 			opts.tableId = opts.tableId || getPrefix(ModelObj);
 			opts.pageNo = req.query[opts.tableId + '_p'] || 1;
-			opts.addtlQuery = getQueryWithoutTableParams(req.query, opts.tableId);
+			opts.addtlQuery = web.utils.getQueryExceptTablePage(req.query, opts.tableId);
 			opts.addtlTableClass = opts.addtlTableClass ? (" " + opts.addtlTableClass) : "";
 			opts.tableTemplate = opts.tableTemplate || pluginConf.tableTemplate;
 			web.utils.getTableFromModel(ModelObj, opts, function(err, tableObj) {
@@ -329,6 +330,18 @@ module.exports = function oilsRenderTable(pluginConf, web, next) {
 		let qArr = [];
 		for (let i in q) {
 			if (!startsWith(i, tableId)) {
+				qArr.push(i + "=" + encodeURIComponent(q[i]));
+			}
+			
+		}
+
+		return qArr.join("&");
+	}
+
+	function getQueryExceptTablePage(q, tableId) {
+		let qArr = [];
+		for (let i in q) {
+			if (i != `${tableId}_p`) {
 				qArr.push(i + "=" + encodeURIComponent(q[i]));
 			}
 			
